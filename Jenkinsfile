@@ -1,16 +1,14 @@
 pipeline {
-    agent any  // Exécute sur n’importe quel agent Jenkins disponible
-
+    agent any
     tools {
-        maven 'Maven'     // Nom configuré dans "Manage Jenkins > Global Tool Configuration"
-        jdk 'jdk17'       // Nom de ton JDK configuré
+        maven 'Maven'   // Doit correspondre au nom configuré dans Jenkins
+        jdk 'jdk17'     // Idem pour le JDK configuré dans Jenkins
     }
 
     stages {
         stage('Checkout') {
             steps {
-                git branch: 'main',
-                    url: 'https://github.com/aichetoumohssen/student-management.git'
+                git 'https://github.com/aichetoumohssen/student-management.git'
             }
         }
 
@@ -20,21 +18,13 @@ pipeline {
             }
         }
 
-        stage('Test') {
+        stage('SonarQube Analysis') {
             steps {
-                sh 'mvn test'
-            }
-        }
-
-        stage('Package') {
-            steps {
-                sh 'mvn package'
-            }
-            post {
-                success {
-                    archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
+                withSonarQubeEnv('sonarqube') {  // "sonarqube" = nom de ton serveur dans Jenkins
+                    sh 'mvn sonar:sonar'
                 }
             }
         }
     }
 }
+
